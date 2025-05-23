@@ -1,4 +1,4 @@
-module go-tcheck
+module github.com/Golevka2001/go-tcheck
 
 go 1.24.2
 
