@@ -13,14 +13,14 @@ import (
 type UIRenderer struct {
 	screen              tcell.Screen
 	manager             *CheckManager
-	styleDefault        tcell.Style
-	styleGood           tcell.Style
-	styleBad            tcell.Style
-	styleWarning        tcell.Style
-	styleScrollBar      tcell.Style
-	styleScrollBarThumb tcell.Style
-	styleScrollBarArrow tcell.Style
-	styleProgress       tcell.Style
+	StyleDefault        tcell.Style
+	StyleGood           tcell.Style
+	StyleBad            tcell.Style
+	StyleWarning        tcell.Style
+	StyleScrollBar      tcell.Style
+	StyleScrollBarThumb tcell.Style
+	StyleScrollBarArrow tcell.Style
+	StyleProgress       tcell.Style
 	mu                  sync.Mutex // For screen operations
 	scrollTop           int        // Top visible item index for scrolling
 	quit                chan struct{}
@@ -31,14 +31,14 @@ func NewUIRenderer(s tcell.Screen, cm *CheckManager) *UIRenderer {
 	return &UIRenderer{
 		screen:              s,
 		manager:             cm,
-		styleDefault:        tcell.StyleDefault.Foreground(tcell.ColorSilver).Background(tcell.ColorNone),
-		styleGood:           tcell.StyleDefault.Foreground(tcell.ColorGreen).Background(tcell.ColorNone),
-		styleBad:            tcell.StyleDefault.Foreground(tcell.ColorRed).Background(tcell.ColorNone),
-		styleWarning:        tcell.StyleDefault.Foreground(tcell.ColorYellow).Background(tcell.ColorNone),
-		styleScrollBar:      tcell.StyleDefault.Foreground(tcell.ColorDarkGray).Background(tcell.ColorNone),
-		styleScrollBarThumb: tcell.StyleDefault.Foreground(tcell.ColorSilver).Background(tcell.ColorNone),
-		styleScrollBarArrow: tcell.StyleDefault.Foreground(tcell.ColorSilver).Background(tcell.ColorNone),
-		styleProgress:       tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorTeal),
+		StyleDefault:        tcell.StyleDefault.Foreground(tcell.ColorSilver).Background(tcell.ColorNone),
+		StyleGood:           tcell.StyleDefault.Foreground(tcell.ColorGreen).Background(tcell.ColorNone),
+		StyleBad:            tcell.StyleDefault.Foreground(tcell.ColorRed).Background(tcell.ColorNone),
+		StyleWarning:        tcell.StyleDefault.Foreground(tcell.ColorYellow).Background(tcell.ColorNone),
+		StyleScrollBar:      tcell.StyleDefault.Foreground(tcell.ColorDarkGray).Background(tcell.ColorNone),
+		StyleScrollBarThumb: tcell.StyleDefault.Foreground(tcell.ColorSilver).Background(tcell.ColorNone),
+		StyleScrollBarArrow: tcell.StyleDefault.Foreground(tcell.ColorSilver).Background(tcell.ColorNone),
+		StyleProgress:       tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorTeal),
 		scrollTop:           0,
 		quit:                make(chan struct{}),
 	}
@@ -74,14 +74,14 @@ func (ui *UIRenderer) drawScrollBar(width, height, numItems, displayableRows int
 
 	// Draw scroll bar track
 	for y := 1; y < displayableRows-1; y++ {
-		ui.emitStr(scrollBarX, y, ui.styleScrollBar, "│")
+		ui.emitStr(scrollBarX, y, ui.StyleScrollBar, "│")
 	}
 
 	// Draw scroll bar thumb
 	for y := 0; y < thumbSize; y++ {
 		pos := thumbPosition + y + 1 // +1 to account for top arrow
 		if pos < displayableRows-1 {
-			ui.emitStr(scrollBarX, pos, ui.styleScrollBarThumb, "█")
+			ui.emitStr(scrollBarX, pos, ui.StyleScrollBarThumb, "█")
 		}
 	}
 }
@@ -95,7 +95,7 @@ func (ui *UIRenderer) Draw() {
 	width, height := ui.screen.Size()
 
 	if height < 3 {
-		ui.emitStr(0, 0, ui.styleBad, "Screen too small!")
+		ui.emitStr(0, 0, ui.StyleBad, "Screen too small!")
 		ui.screen.Show()
 		return
 	}
@@ -122,21 +122,21 @@ func (ui *UIRenderer) Draw() {
 		item.mu.Unlock()
 
 		var line string
-		style := ui.styleDefault
+		style := ui.StyleDefault
 
 		switch status {
 		case StatusCompleted:
-			style = ui.styleGood
+			style = ui.StyleGood
 			line = fmt.Sprintf("✅ %s", name)
 		case StatusFailed:
-			style = ui.styleBad
+			style = ui.StyleBad
 			errMsg := ""
 			if err != nil {
 				errMsg = fmt.Sprintf(" (%s)", err.Error())
 			}
 			line = fmt.Sprintf("❌ %s%s", name, errMsg)
 		case StatusInProgress:
-			style = ui.styleWarning
+			style = ui.StyleWarning
 			progressText := fmt.Sprintf("%d%%", subProgress)
 			if subMessage != "" {
 				progressText = fmt.Sprintf("%d%% - %s", subProgress, subMessage)
@@ -152,10 +152,10 @@ func (ui *UIRenderer) Draw() {
 	// Draw scroll indicators if necessary
 	if displayableRows < numItems {
 		if ui.scrollTop > 0 {
-			ui.emitStr(width-1, 0, ui.styleScrollBarArrow, "▲")
+			ui.emitStr(width-1, 0, ui.StyleScrollBarArrow, "▲")
 		}
 		if ui.scrollTop+displayableRows < numItems {
-			ui.emitStr(width-1, displayableRows-1, ui.styleScrollBarArrow, "▼")
+			ui.emitStr(width-1, displayableRows-1, ui.StyleScrollBarArrow, "▼")
 		}
 	}
 
@@ -181,10 +181,10 @@ func (ui *UIRenderer) Draw() {
 
 	// Clear the progress bar line before drawing
 	for i := range width {
-		ui.screen.SetContent(i, height-1, ' ', nil, ui.styleDefault)
+		ui.screen.SetContent(i, height-1, ' ', nil, ui.StyleDefault)
 	}
-	ui.emitStr(0, height-1, ui.styleDefault, sb.String())
-	ui.emitStr((width-len(progressText))/2, height-1, ui.styleProgress, progressText)
+	ui.emitStr(0, height-1, ui.StyleDefault, sb.String())
+	ui.emitStr((width-len(progressText))/2, height-1, ui.StyleProgress, progressText)
 
 	ui.screen.Show()
 }
