@@ -24,6 +24,7 @@ type UIRenderer struct {
 	mu                  sync.Mutex // For screen operations
 	scrollTop           int        // Top visible item index for scrolling
 	quit                chan struct{}
+	quitOnce            sync.Once  // Ensure quit channel is closed only once
 }
 
 // NewUIRenderer creates a new UI renderer.
@@ -41,6 +42,7 @@ func NewUIRenderer(s tcell.Screen, cm *CheckManager) *UIRenderer {
 		StyleProgress:       tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorTeal),
 		scrollTop:           0,
 		quit:                make(chan struct{}),
+		quitOnce:            sync.Once{},
 	}
 }
 
@@ -104,6 +106,38 @@ func (ui *UIRenderer) Draw() {
 	numItems := len(items)
 	displayableRows := height - 1
 
+	// Check if all tasks are completed and passed for auto-close
+	allCompleted := true
+	allPassed := true
+	for _, item := range items {
+		item.mu.Lock()
+		status := item.Status
+		item.mu.Unlock()
+
+		if status != StatusCompleted && status != StatusFailed {
+			allCompleted = false
+			break
+		}
+		if status == StatusFailed {
+			allPassed = false
+		}
+	}
+
+	// Auto-close if all checks are completed and passed
+	if allCompleted && allPassed && len(items) > 0 {
+		go func() {
+			// Small delay to show final state briefly
+			select {
+			case <-ui.quit:
+				return
+			default:
+				ui.quitOnce.Do(func() {
+					close(ui.quit)
+				})
+			}
+		}()
+	}
+
 	// Handle scrolling
 	if ui.scrollTop > 0 && ui.scrollTop >= numItems-displayableRows+1 && numItems > displayableRows {
 		ui.scrollTop = max(numItems-displayableRows, 0)
@@ -127,23 +161,23 @@ func (ui *UIRenderer) Draw() {
 		switch status {
 		case StatusCompleted:
 			style = ui.StyleGood
-			line = fmt.Sprintf("✅ %s", name)
+			line = fmt.Sprintf("✅  %s", name)
 		case StatusFailed:
 			style = ui.StyleBad
 			errMsg := ""
 			if err != nil {
 				errMsg = fmt.Sprintf(" (%s)", err.Error())
 			}
-			line = fmt.Sprintf("❌ %s%s", name, errMsg)
+			line = fmt.Sprintf("❌  %s%s", name, errMsg)
 		case StatusInProgress:
 			style = ui.StyleWarning
 			progressText := fmt.Sprintf("%d%%", subProgress)
 			if subMessage != "" {
 				progressText = fmt.Sprintf("%d%% - %s", subProgress, subMessage)
 			}
-			line = fmt.Sprintf("⏳ %s (%s)", name, progressText)
+			line = fmt.Sprintf("⏳  %s (%s)", name, progressText)
 		case StatusPending:
-			line = fmt.Sprintf("- %s", name)
+			line = fmt.Sprintf("-  %s", name)
 		}
 		ui.emitStr(0, y, style, line)
 		y++
@@ -220,10 +254,15 @@ func (ui *UIRenderer) Run() {
 					ui.mu.Unlock()
 					ui.Draw()
 				case *tcell.EventKey:
-					if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC || (ev.Key() == tcell.KeyRune && ev.Rune() == 'q') {
-						close(ui.quit)
-						return
-					}
+					if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC || ev.Key() == tcell.KeyEnter || (ev.Key() == tcell.KeyRune && ev.Rune() == 'q') {
+						completedCnt, totalCnt, _ := ui.manager.CalculateOverallProgress()
+						if completedCnt == totalCnt {
+							ui.quitOnce.Do(func() {
+                                close(ui.quit)
+                            })
+                            return
+                        }
+                    }
 					if ev.Key() == tcell.KeyDown {
 						ui.mu.Lock()
 						itemsCount := len(ui.manager.GetItems())
@@ -253,10 +292,11 @@ func (ui *UIRenderer) Run() {
 	// We also need this loop to handle the quit signal correctly.
 	<-ui.quit
 	ui.screen.Fini()
-	fmt.Println("Application quit.")
 }
 
 // Stop cleanly shuts down the UI event loop.
 func (ui *UIRenderer) Stop() {
-	close(ui.quit)
+    ui.quitOnce.Do(func() {
+        close(ui.quit)
+    })
 }
