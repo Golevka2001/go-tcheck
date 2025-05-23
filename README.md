@@ -18,7 +18,7 @@ It provides a simple API for managing a range of asynchronous tasks and displayi
 
 ## Usage
 
-### Initialization
+### Initialize
 
 ```go
 // Assume you have already created a tcell.Screen instance
@@ -34,7 +34,7 @@ manager := tcheck.NewCheckManager(func() {
 ui = tcheck.NewUIRenderer(s, manager)
 ```
 
-### Adding Checks
+### Add Checks
 
 ```go
 manager.AddCheck(
@@ -68,7 +68,7 @@ func CheckNetworkConnectivity(reporter tcheck.SubProgressReporter) error {
 }
 ```
 
-### Running Checks
+### Run All Checks
 
 ```go
 // Start running checks in the background
@@ -76,6 +76,32 @@ go manager.RunAllChecks()
 
 // Start the UI event loop (this will block until quit)
 ui.Run()
+```
+
+### Get Check Results
+
+```go
+// The following code should be placed after `ui.Run()`
+failed := []string{}
+for _, item := range manager.GetItems() {
+    if item.Status == tcheck.StatusFailed {
+        // Collect the information of failed checks
+        failed = append(failed, fmt.Sprintf("%s: %v", item.Name, item.Error))
+    }
+}
+
+if len(failed) > 0 {
+    // If any check failed, do something...
+    fmt.Println("❌ Exiting due to failed checks.")
+    for _, fail := range failed {
+        fmt.Printf(" - %s\n", fail)
+    }
+    os.Exit(1)
+}
+
+// If all checks passed, continue with the next steps
+fmt.Println("✅ All checks passed! Moving to the next step...")
+fmt.Println("Welcome!")
 ```
 
 ## Example

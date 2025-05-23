@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	tcheck "github.com/Golevka2001/go-tcheck"
@@ -76,18 +77,27 @@ func main() {
 	// Start the UI event loop (this will block until quit)
 	ui.Run()
 
-	// After UI loop exits (e.g., user presses 'q')
-	// You might want to wait for any remaining checks if RunAllChecks was non-blocking
-	// and you want to ensure cleanup or logging of all results.
-	// For this example, RunAllChecks spawns goroutines and doesn't block main.
-	// The UIRenderer's quit signal will stop the UI, and the application will then exit.
-	// If checks are still running, their goroutines will continue until they complete.
-	fmt.Println("Checks processing initiated. UI has been closed.")
-	// Allow a moment for any final check updates if they were very close to finishing
-	// In a real app, you'd use sync.WaitGroup if you needed to ensure all checks complete
-	// before the program fully exits.
-	time.Sleep(1 * time.Second)
-	log.Println("Exiting application.")
+	// Collect failed checks
+	failed := []string{}
+	for _, item := range manager.GetItems() {
+		if item.Status == tcheck.StatusFailed {
+			// Collect the information of failed checks
+			failed = append(failed, fmt.Sprintf("%s: %v", item.Name, item.Error))
+		}
+	}
+
+	if len(failed) > 0 {
+		// If any check failed, do something...
+		fmt.Println("❌ Exiting due to failed checks:")
+		for _, fail := range failed {
+			fmt.Printf(" - %s\n", fail)
+		}
+		os.Exit(1)
+	}
+
+	// If all checks passed, continue with the next steps
+	fmt.Println("✅ All checks passed! Moving to the next step...")
+	fmt.Println("Welcome!")
 }
 
 // ExampleCheckSuccessful demonstrates a check that completes successfully.
