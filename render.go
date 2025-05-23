@@ -291,7 +291,6 @@ func (ui *UIRenderer) Run() {
 	// The CheckManager's uiUpdate callback will call ui.Draw()
 	// We also need this loop to handle the quit signal correctly.
 	<-ui.quit
-	ui.screen.Fini()
 }
 
 // Stop cleanly shuts down the UI event loop.

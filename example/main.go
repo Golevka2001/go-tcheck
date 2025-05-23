@@ -20,7 +20,6 @@ func main() {
 	if err := s.Init(); err != nil {
 		log.Fatalf("Failed to initialize screen: %v", err)
 	}
-	defer s.Fini()
 
 	// Create CheckManager and UIRenderer
 	// The UIRenderer needs a way to be told to redraw when item states change.
@@ -76,6 +75,9 @@ func main() {
 
 	// Start the UI event loop (this will block until quit)
 	ui.Run()
+	
+	// If the screen won't be used anymore, we can clean it up.
+	s.Fini()
 
 	// Collect failed checks
 	failed := []string{}
