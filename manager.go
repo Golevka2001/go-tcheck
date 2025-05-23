@@ -17,9 +17,8 @@ type CheckManager struct {
 // NewCheckManager creates a new CheckManager.
 // maxConcurrentChecks limits how many checks run at the same time.
 func NewCheckManager(uiUpdateFunc func(), maxConcurrentChecks int) *CheckManager {
-	if maxConcurrentChecks <= 0 {
-		maxConcurrentChecks = 1 // Default to at least one worker
-	}
+	maxConcurrentChecks = max(maxConcurrentChecks, 1) // Default to at least one worker
+
 	return &CheckManager{
 		items:         make([]*CheckItem, 0),
 		uiUpdate:      uiUpdateFunc,
