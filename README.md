@@ -82,6 +82,8 @@ ui.Run()
 
 ```go
 // The following code should be placed after `ui.Run()`
+s.Fini() // If the screen won't be used anymore, we can clean it up.
+
 failed := []string{}
 for _, item := range manager.GetItems() {
     if item.Status == tcheck.StatusFailed {
