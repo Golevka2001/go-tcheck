@@ -1,6 +1,6 @@
 module github.com/Golevka2001/go-tcheck
 
-go 1.24.2
+go 1.22
 
 require github.com/gdamore/tcell/v2 v2.8.1
 
