@@ -24,7 +24,7 @@ type UIRenderer struct {
 	mu                  sync.Mutex // For screen operations
 	scrollTop           int        // Top visible item index for scrolling
 	quit                chan struct{}
-	quitOnce            sync.Once  // Ensure quit channel is closed only once
+	quitOnce            sync.Once // Ensure quit channel is closed only once
 }
 
 // NewUIRenderer creates a new UI renderer.
@@ -106,25 +106,21 @@ func (ui *UIRenderer) Draw() {
 	numItems := len(items)
 	displayableRows := height - 1
 
-	// Check if all tasks are completed and passed for auto-close
+	// Check if all tasks are completed
 	allCompleted := true
-	allPassed := true
 	for _, item := range items {
 		item.mu.Lock()
 		status := item.Status
 		item.mu.Unlock()
 
-		if status != StatusCompleted && status != StatusFailed {
+		if status == StatusInProgress || status == StatusPending {
 			allCompleted = false
 			break
 		}
-		if status == StatusFailed {
-			allPassed = false
-		}
 	}
 
-	// Auto-close if all checks are completed and passed
-	if allCompleted && allPassed && len(items) > 0 {
+	// Auto-close if all checks are completed
+	if allCompleted {
 		go func() {
 			// Small delay to show final state briefly
 			select {
@@ -258,11 +254,11 @@ func (ui *UIRenderer) Run() {
 						completedCnt, totalCnt, _ := ui.manager.CalculateOverallProgress()
 						if completedCnt == totalCnt {
 							ui.quitOnce.Do(func() {
-                                close(ui.quit)
-                            })
-                            return
-                        }
-                    }
+								close(ui.quit)
+							})
+							return
+						}
+					}
 					if ev.Key() == tcell.KeyDown {
 						ui.mu.Lock()
 						itemsCount := len(ui.manager.GetItems())
@@ -295,7 +291,7 @@ func (ui *UIRenderer) Run() {
 
 // Stop cleanly shuts down the UI event loop.
 func (ui *UIRenderer) Stop() {
-    ui.quitOnce.Do(func() {
-        close(ui.quit)
-    })
+	ui.quitOnce.Do(func() {
+		close(ui.quit)
+	})
 }

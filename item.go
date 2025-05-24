@@ -2,6 +2,7 @@ package tcheck
 
 import (
 	"sync"
+	"time"
 )
 
 // CheckStatus represents the status of a check item.
@@ -67,6 +68,7 @@ func (r *checkItemReporter) ReportSubProgress(percentage int, message string) {
 		// For this example, we'll just print, but in tcell you'd post an event.
 		// fmt.Printf("UI Event: Update item %d - SubProgress: %d%%, Message: %s\n", r.item.ID, percentage, message)
 	}
+	time.Sleep(200 * time.Millisecond)
 }
 
 // Run executes the check function.

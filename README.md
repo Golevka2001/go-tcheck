@@ -43,7 +43,7 @@ manager.AddCheck(
 )
 
 func CheckNetworkConnectivity(reporter tcheck.SubProgressReporter) error {
-    // You can define multiple sub-progress steps in a check function.
+    // You can define multiple sub-progress steps in a check function
     target1 := "192.168.66.1"
     reporter.ReportSubProgress(0, "Pinging "+target1+"...")
     cmd := exec.Command("ping", "-c", "1", target1)
@@ -62,7 +62,7 @@ func CheckNetworkConnectivity(reporter tcheck.SubProgressReporter) error {
         return fmt.Errorf("ping failed: %v", err)
     }
 
-    // Use `ReportSubProgress` to report the progress of the check.
+    // Use `ReportSubProgress` to report the progress of the check
     reporter.ReportSubProgress(100, "Network connectivity OK")
     return nil
 }
@@ -81,8 +81,11 @@ ui.Run()
 ### Get Check Results
 
 ```go
-// The following code should be placed after `ui.Run()`
-s.Fini() // If the screen won't be used anymore, we can clean it up.
+// Stop the UI event loop
+ui.Stop()
+time.Sleep(100 * time.Millisecond) // Sleep for a bit to allow the UI to finish drawing
+// If the screen won't be used anymore, we can clean it up
+s.Fini()
 
 failed := []string{}
 for _, item := range manager.GetItems() {
