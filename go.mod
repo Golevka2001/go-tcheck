@@ -13,3 +13,8 @@ require (
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 )
+
+retract (
+	v1.0.0 // Module was renamed to `github.com/Golevka2001/go-tcheck`
+	v1.0.1 // Module was renamed to `github.com/Golevka2001/go-tcheck`
+)
