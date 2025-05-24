@@ -75,7 +75,7 @@ func main() {
 
 	// Start the UI event loop (this will block until quit)
 	ui.Run()
-	
+
 	// If the screen won't be used anymore, we can clean it up.
 	ui.Stop()
 	time.Sleep(100 * time.Millisecond) // Sleep for a bit to allow the UI to finish drawing.

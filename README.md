@@ -1,5 +1,8 @@
 # go-tcheck
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/Golevka2001/go-tcheck)](https://goreportcard.com/report/github.com/Golevka2001/go-tcheck)
+[![go.dev reference](https://godoc.org/github.com/Golevka2001/go-tcheck?status.svg)](https://pkg.go.dev/github.com/Golevka2001/go-tcheck)
+
 ## Introduction
 
 `go-tcheck` is a lightweight package written in [Go](https://go.dev/), designed to help developers create dynamic, real-time checks and task progress displays for their CLI applications *(especially [tcell](https://github.com/gdamore/tcell) based applications)*.
